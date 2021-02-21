@@ -14,7 +14,7 @@ mp_hands = mp.solutions.hands
 width = 640
 height = 480
 
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
+hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -27,10 +27,11 @@ addFrame = True # For first frame
 keyFrames = []
 keyCheckPoints = []
 
-file_name = "create.csv"
-lock_frame = 48
+file_name = "hello.csv"
+lock_frame = 96
 collecting = False
 dataRows = []
+frameCounter = 0
 
 nullVectors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 null_24 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -40,6 +41,15 @@ d_threshold = 0.1
 connections = [
     (1, 4), (5, 8), (9, 12), (13, 16), (17, 20)
 ]
+
+r_c_x = 0
+r_c_y = 0
+l_c_x = 0
+l_c_y = 0
+r_p_x = 0
+r_p_y = 0
+l_p_x = 0
+l_p_y = 0
 
 def generatePointVectors(rightPoints, leftPoints, previousFrames):
     rightVectors = []
@@ -208,15 +218,6 @@ def generateCheckPoints(rightPoints, leftPoints):
 
     return checkPoints
 
-r_c_x = 0
-r_c_y = 0
-l_c_x = 0
-l_c_y = 0
-r_p_x = 0
-r_p_y = 0
-l_p_x = 0
-l_p_y = 0
-
 while cap.isOpened():
     success, image = cap.read()
     if not success:
@@ -313,7 +314,8 @@ while cap.isOpened():
                             elif(len(keyFrames) == 72):
                                 keyFrames.extend(null_24)
                             dataRows.append(keyFrames)
-                            print(len(dataRows))
+                            frameCounter = frameCounter + 1
+                            print("Frame Count ", frameCounter)
                             keyFrames = []
                         
             else:
@@ -344,6 +346,8 @@ while cap.isOpened():
                                 keyFrames.extend(null_24)
                                 i = i + 1
                             dataRows.append(keyFrames)
+                            frameCounter = frameCounter + 1
+                            print("Frame Count ", frameCounter)
                             keyFrames = []
                             collecting = False
 
@@ -365,7 +369,8 @@ while cap.isOpened():
                         elif(len(keyFrames) == 72):
                             keyFrames.extend(null_24)
                         dataRows.append(keyFrames)
-                        print(len(dataRows))
+                        frameCounter = frameCounter + 1
+                        print("Frame Count ", frameCounter)
                         keyFrames = []
 
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
@@ -383,7 +388,7 @@ while cap.isOpened():
     #     counter = 0
     #     start_time = time.time()
 
-with open(file_name, 'w+', newline='') as csv_file:
+with open(file_name, 'a+', newline='') as csv_file:
     writer = csv.writer(csv_file)
     for row in dataRows:
         writer.writerow(row)
