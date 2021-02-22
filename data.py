@@ -14,7 +14,7 @@ mp_hands = mp.solutions.hands
 width = 640
 height = 480
 
-hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+hands = mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.75)
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -27,11 +27,14 @@ addFrame = True # For first frame
 keyFrames = []
 keyCheckPoints = []
 
-file_name = "hello.csv"
-lock_frame = 96
+file_name = "from.csv"
+
 collecting = False
 dataRows = []
 frameCounter = 0
+lock_frame = 96 # How many columns to fill (96 columns = 4 keyframes)
+x = 1.5 # Wait X seconds before collecting data
+start_time = time.time()
 
 nullVectors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 null_24 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -269,14 +272,8 @@ while cap.isOpened():
                     finalVectors = generatePointVectors(rightHandPoints, leftHandPoints, keyFrames)
                     checkPoints = generateCheckPoints(rightHandPoints, leftHandPoints)
 
-                    key = cv2.waitKey(1)
-                    if(key == ord('s')):    # Press 'S' to start/stop data collection
-                        if collecting == False:
-                            collecting = True
-                        else:
-                            collecting = False
-
                     if(collecting):
+                        start_time = time.time()
                         if(addFrame == True):
                             keyFrames.extend(finalVectors)
                             keyCheckPoints.extend(checkPoints)
@@ -322,14 +319,8 @@ while cap.isOpened():
                 finalVectors = generatePointVectors(rightHandPoints, leftHandPoints, keyFrames)
                 checkPoints = generateCheckPoints(rightHandPoints, leftHandPoints)
 
-                key = cv2.waitKey(1)
-                if(key == ord('s')):    # Press 'S' to start/stop data collection
-                    if collecting == False:
-                        collecting = True
-                    else:
-                        collecting = False
-
                 if(collecting):
+                    start_time = time.time()
                     if(addFrame == True):
                         keyFrames.extend(finalVectors)
                         keyCheckPoints.extend(checkPoints)
@@ -374,19 +365,20 @@ while cap.isOpened():
                         keyFrames = []
 
             mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+        if(collecting == False):
+            if (time.time() - start_time) > x :
+                start_time = time.time()
+                collecting = True
+                print("Collecting Data")
     
+    else:
+        collecting = False
+        start_time = time.time()
+
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
         break
-    
-    # Decrease FPS
-    # time.sleep(1/frameRate)
-    # # Calculate FPS
-    # counter+=1
-    # if (time.time() - start_time) > x :
-    #     print("FPS: ", counter / (time.time() - start_time))
-    #     counter = 0
-    #     start_time = time.time()
 
 with open(file_name, 'a+', newline='') as csv_file:
     writer = csv.writer(csv_file)
