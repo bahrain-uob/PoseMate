@@ -49,6 +49,8 @@ rightHandFirst = False
 isMultiHand = False
 addFrame = True # For first frame
 
+finalLabel = ''
+
 keyFrames = []
 keyCheckPoints = []
 
@@ -395,17 +397,27 @@ def classification(inputData_0, inputData_1, inputData_2, inputData_3):
     out_label_1 = labels["{}".format(np.argmax(prob_list_1, axis=0))]
     out_label_2 = labels["{}".format(np.argmax(prob_list_2, axis=0))]
     out_label_3 = labels["{}".format(np.argmax(prob_list_3, axis=0))]
+    
+    label = ''
+    if(max_prob_0 > 0.95):
+        label = out_label_0
 
-    # print((out_label_0, max_prob_0), (out_label_1, max_prob_1), (out_label_2, max_prob_2), (out_label_3, max_prob_3))
-    print(out_label_0, out_label_1, out_label_2, out_label_3)
-    return out_label_0, out_label_1, out_label_2, out_label_3
+    if(max_prob_1 > 0.90):
+        label = out_label_1
+    
+    if(max_prob_2 > 0.85):
+        label = out_label_2
+    
+    if(max_prob_3 > 0.80):
+        label = out_label_3
+
+    return label
 
 def cleanUp(frames):
     keyFrames2 = []
     keyFrames2.extend(frames)
     # 4 Frames
     if(len(keyFrames2) == 96):
-        print("Cleanup 1 1")
         cycledFrames = []
         cycledFrames.extend(keyFrames2)
         #right hand origins
@@ -494,7 +506,6 @@ def cleanUp(frames):
         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
         classification(set_0, set_1, set_2, set_3)
 
-        print("Cleanup 1 2")
         cycledFrames = []
         cycledFrames.extend(keyFrames)
 
@@ -561,7 +572,6 @@ def cleanUp(frames):
         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
         classification(set_0, set_1, set_2, set_3)
 
-        print("Cleanup 1 3")
         cycledFrames = []
         cycledFrames.extend(keyFrames)
 
@@ -605,7 +615,6 @@ def cleanUp(frames):
 
     # 3 Frames
     elif(len(keyFrames2) == 72):
-        print("Cleanup 2 1")
         cycledFrames = []
         cycledFrames.extend(keyFrames2)
 
@@ -672,8 +681,6 @@ def cleanUp(frames):
         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
         classification(set_0, set_1, set_2, set_3)
 
-        print("Cleanup 2 2")
-
         cycledFrames = []
         cycledFrames.extend(keyFrames)
 
@@ -717,7 +724,6 @@ def cleanUp(frames):
 
     # 2 Frames
     elif(len(keyFrames2) == 48):
-        print("Cleanup 3 1")
         cycledFrames = []
         cycledFrames.extend(keyFrames2)
 
@@ -815,7 +821,9 @@ while cap.isOpened():
                         keyCheckPoints.extend(checkPoints)
                         print("Frame Added. Length of Keyframes: ", len(keyFrames))
                         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
-                        classification(set_0, set_1, set_2, set_3)
+                        temp_label = classification(set_0, set_1, set_2, set_3)
+                        if temp_label:
+                            finalLabel = temp_label
                         addFrame = False
                     else:
                         addFrame, r_c_x, r_c_y, l_c_x, l_c_y, r_p_x, r_p_y, l_p_x, l_p_y = checkPreviousFrame(checkPoints, keyCheckPoints)
@@ -840,7 +848,9 @@ while cap.isOpened():
                     keyCheckPoints.extend(checkPoints)
                     print("Frame Added. Length of Keyframes: ", len(keyFrames))
                     set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
-                    classification(set_0, set_1, set_2, set_3)
+                    temp_label = classification(set_0, set_1, set_2, set_3)
+                    if temp_label:
+                        finalLabel = temp_label
                     addFrame = False
                 else:
                     addFrame, r_c_x, r_c_y, l_c_x, l_c_y, r_p_x, r_p_y, l_p_x, l_p_y = checkPreviousFrame(checkPoints, keyCheckPoints)
@@ -849,7 +859,7 @@ while cap.isOpened():
                         if(len(keyFrames) == 96):
                             keyFrames = recalculateFrames(keyFrames)
                             print("Frame Cycled. Length of Keyframes: ", len(keyFrames))
-                            
+                
                 cv2.circle(image, (int(r_c_x * width), int(r_c_y * height)), 3, (255, 0, 0), 2)
                 cv2.circle(image, (int(l_c_x * width), int(l_c_y * height)), 3, (255, 255, 0), 2)
 
@@ -861,6 +871,8 @@ while cap.isOpened():
     else:
         cleanUp(keyFrames)
         keyFrames = []
+
+    cv2.putText(image, finalLabel, (width - 200, height - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2, 1)
     
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
