@@ -18,11 +18,27 @@ frameRate = 1
 # x = 1 # displays the frame rate every 1 second
 # counter = 0
 
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
+hands = mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.75)
 
-model = pkl.load(open('./models/xgboost-model-dynamic-words-3', 'rb'))
+model = pkl.load(open('./models/xgboost-model-dynamic-words-16', 'rb'))
+
 labels = {
-  "0" : "we", "1" : "hello", "2" : "create"
+    "0" : "me", 
+    "1" : "you", 
+    "2" : "hello", 
+    "3" : "from",
+    "4" : "good",
+    "5" : "how",
+    "6" : "university",
+    "7" : "welcome",
+    "8" : "hope",
+    "9" : "like",
+    "10" : "new",
+    "11" : "people",
+    "12" : "technology",
+    "13" : "use",
+    "14" : "voice",
+    "15" : "create"
 }
 
 cap = cv2.VideoCapture(0)
@@ -380,17 +396,18 @@ def classification(inputData_0, inputData_1, inputData_2, inputData_3):
     out_label_2 = labels["{}".format(np.argmax(prob_list_2, axis=0))]
     out_label_3 = labels["{}".format(np.argmax(prob_list_3, axis=0))]
 
+    # print((out_label_0, max_prob_0), (out_label_1, max_prob_1), (out_label_2, max_prob_2), (out_label_3, max_prob_3))
     print(out_label_0, out_label_1, out_label_2, out_label_3)
     return out_label_0, out_label_1, out_label_2, out_label_3
 
 def cleanUp(frames):
-    keyFrames = []
-    keyFrames.extend(frames)
+    keyFrames2 = []
+    keyFrames2.extend(frames)
     # 4 Frames
-    if(len(keyFrames) == 96):
-
+    if(len(keyFrames2) == 96):
+        print("Cleanup 1 1")
         cycledFrames = []
-        cycledFrames.extend(keyFrames)
+        cycledFrames.extend(keyFrames2)
         #right hand origins
         r_base_x = cycledFrames[0]
         r_base_y = cycledFrames[1]
@@ -477,9 +494,7 @@ def cleanUp(frames):
         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
         classification(set_0, set_1, set_2, set_3)
 
-    # 3 Frames
-    if(len(keyFrames) == 72):
-
+        print("Cleanup 1 2")
         cycledFrames = []
         cycledFrames.extend(keyFrames)
 
@@ -546,11 +561,165 @@ def cleanUp(frames):
         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
         classification(set_0, set_1, set_2, set_3)
 
-    # 2 Frames
-    if(len(keyFrames) == 48):
+        print("Cleanup 1 3")
+        cycledFrames = []
+        cycledFrames.extend(keyFrames)
+
+        #right hand origins
+        r_base_x = cycledFrames[0]
+        r_base_y = cycledFrames[1]
+
+        r_24_dx = cycledFrames[24] - r_base_x
+        r_25_dy = cycledFrames[25] - r_base_y
+
+        #left hand origins
+        l_base_x = cycledFrames[12]
+        l_base_y = cycledFrames[13]
+
+        l_36_dx = cycledFrames[36] - l_base_x
+        l_37_dy = cycledFrames[37] - l_base_y
+
+        # New Origin
+        new_r_base_x = cycledFrames[24]
+        new_r_base_y = cycledFrames[25]
+
+        new_l_base_x = cycledFrames[36]
+        new_l_base_y = cycledFrames[37]
+
+        i = 24
+        while(i < 48):
+            if(i >= 26 and i < 36):
+                cycledFrames[i] = round((cycledFrames[i] - r_24_dx), 5)
+                cycledFrames[i + 1] = round((cycledFrames[i + 1] - r_25_dy), 5)
+            elif(i >= 38 and i < 48):
+                cycledFrames[i] = round(cycledFrames[i] - l_36_dx , 5)
+                cycledFrames[i + 1] = round(cycledFrames[i + 1] - l_37_dy , 5)
+            i = i + 2
+
+        # Cycle out
+        cycledFrames = cycledFrames[24:]
+        keyFrames = cycledFrames
+
+        set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
+        classification(set_0, set_1, set_2, set_3)
+
+    # 3 Frames
+    elif(len(keyFrames2) == 72):
+        print("Cleanup 2 1")
+        cycledFrames = []
+        cycledFrames.extend(keyFrames2)
+
+        #right hand origins
+        r_base_x = cycledFrames[0]
+        r_base_y = cycledFrames[1]
+
+        r_24_dx = cycledFrames[24] - r_base_x
+        r_25_dy = cycledFrames[25] - r_base_y
+
+        r_48_dx = cycledFrames[48] - r_base_x
+        r_49_dy = cycledFrames[49] - r_base_y
+
+        #left hand origins
+        l_base_x = cycledFrames[12]
+        l_base_y = cycledFrames[13]
+
+        l_36_dx = cycledFrames[36] - l_base_x
+        l_37_dy = cycledFrames[37] - l_base_y
+
+        l_60_dx = cycledFrames[60] - l_base_x
+        l_61_dy = cycledFrames[61] - l_base_y
+
+        # New Origin
+        new_r_base_x = cycledFrames[24]
+        new_r_base_y = cycledFrames[25]
+
+        new_r_48_x = cycledFrames[48] - new_r_base_x
+        new_r_49_y = cycledFrames[49] - new_r_base_y
+
+        new_l_base_x = cycledFrames[36]
+        new_l_base_y = cycledFrames[37]
+
+        new_l_60_x = cycledFrames[60] - new_l_base_x
+        new_l_61_y = cycledFrames[61] - new_l_base_y
+
+        i = 24
+        while(i < 72):
+            if(i >= 26 and i < 36):
+                cycledFrames[i] = round((cycledFrames[i] - r_24_dx), 5)
+                cycledFrames[i + 1] = round((cycledFrames[i + 1] - r_25_dy), 5)
+            elif(i >= 38 and i < 48):
+                cycledFrames[i] = round(cycledFrames[i] - l_36_dx , 5)
+                cycledFrames[i + 1] = round(cycledFrames[i + 1] - l_37_dy , 5)
+                
+            elif(i >= 50 and i < 60):
+                r_orignial_keyframe_x = cycledFrames[i] - r_48_dx
+                r_orignial_keyframe_y = cycledFrames[i + 1] - r_49_dy
+                
+                cycledFrames[i] = round(r_orignial_keyframe_x + new_r_48_x, 5)
+                cycledFrames[i + 1] = round(r_orignial_keyframe_y + new_r_49_y, 5)
+            elif(i >= 62 and i < 72):
+                l_orignial_keyframe_x = cycledFrames[i] - l_60_dx
+                l_orignial_keyframe_y = cycledFrames[i + 1] - l_61_dy
+                
+                cycledFrames[i] = round(l_orignial_keyframe_x + new_l_60_x, 5)
+                cycledFrames[i + 1] = round(l_orignial_keyframe_y + new_l_61_y, 5)
+            i = i + 2
+
+        # Cycle out
+        cycledFrames = cycledFrames[24:]
+        keyFrames = cycledFrames
+
+        set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
+        classification(set_0, set_1, set_2, set_3)
+
+        print("Cleanup 2 2")
 
         cycledFrames = []
         cycledFrames.extend(keyFrames)
+
+        #right hand origins
+        r_base_x = cycledFrames[0]
+        r_base_y = cycledFrames[1]
+
+        r_24_dx = cycledFrames[24] - r_base_x
+        r_25_dy = cycledFrames[25] - r_base_y
+
+        #left hand origins
+        l_base_x = cycledFrames[12]
+        l_base_y = cycledFrames[13]
+
+        l_36_dx = cycledFrames[36] - l_base_x
+        l_37_dy = cycledFrames[37] - l_base_y
+
+        # New Origin
+        new_r_base_x = cycledFrames[24]
+        new_r_base_y = cycledFrames[25]
+
+        new_l_base_x = cycledFrames[36]
+        new_l_base_y = cycledFrames[37]
+
+        i = 24
+        while(i < 48):
+            if(i >= 26 and i < 36):
+                cycledFrames[i] = round((cycledFrames[i] - r_24_dx), 5)
+                cycledFrames[i + 1] = round((cycledFrames[i + 1] - r_25_dy), 5)
+            elif(i >= 38 and i < 48):
+                cycledFrames[i] = round(cycledFrames[i] - l_36_dx , 5)
+                cycledFrames[i + 1] = round(cycledFrames[i + 1] - l_37_dy , 5)
+            i = i + 2
+
+        # Cycle out
+        cycledFrames = cycledFrames[24:]
+        keyFrames = cycledFrames
+
+        set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
+        classification(set_0, set_1, set_2, set_3)
+
+    # 2 Frames
+    elif(len(keyFrames2) == 48):
+        print("Cleanup 3 1")
+        cycledFrames = []
+        cycledFrames.extend(keyFrames2)
 
         #right hand origins
         r_base_x = cycledFrames[0]

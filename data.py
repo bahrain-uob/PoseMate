@@ -27,7 +27,7 @@ addFrame = True # For first frame
 keyFrames = []
 keyCheckPoints = []
 
-file_name = "from.csv"
+file_name = "how.csv"
 
 collecting = False
 dataRows = []
@@ -290,6 +290,8 @@ while cap.isOpened():
                                     keyFrames.extend(null_24)
                                     i = i + 1
                                 dataRows.append(keyFrames)
+                                frameCounter = frameCounter + 1
+                                print("Frame Count ", frameCounter)
                                 keyFrames = []
                                 collecting = False
 
