@@ -61,6 +61,10 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
+# fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+fourcc =cv2.VideoWriter_fourcc('M','J','P','G')
+videoWriter = cv2.VideoWriter('hello.mp4', fourcc, 30, (width,height))
+
 rightHandFirst = False
 isMultiHand = False
 addFrame = True # For first frame
@@ -908,6 +912,7 @@ while cap.isOpened():
     if cv2.waitKey(5) & 0xFF == 27:
         break
     
+    videoWriter.write(image)
     # Decrease FPS
     # time.sleep(1/frameRate)
     # # Calculate FPS
@@ -918,4 +923,5 @@ while cap.isOpened():
     #     start_time = time.time()
 
 hands.close()
+videoWriter.release()
 cap.release()
