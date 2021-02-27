@@ -20,26 +20,42 @@ frameRate = 1
 
 hands = mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.75)
 
-model = pkl.load(open('./models/xgboost-model-dynamic-words-16', 'rb'))
+model = pkl.load(open('./models/xgboost-model-dynamic-words-8-tuned', 'rb'))
 
+# labels = {
+#     "0" : "me", 
+#     "1" : "you", 
+#     "2" : "hello", 
+#     "3" : "from",
+#     "4" : "good",
+#     "5" : "how",
+#     "6" : "university",
+#     "7" : "welcome",
+#     "8" : "hope",
+#     "9" : "like",
+#     "10" : "new",
+#     "11" : "people",
+#     "12" : "technology",
+#     "13" : "use",
+#     "14" : "voice",
+#     "15" : "create"
+# }
 labels = {
     "0" : "me", 
     "1" : "you", 
     "2" : "hello", 
-    "3" : "from",
-    "4" : "good",
-    "5" : "how",
-    "6" : "university",
-    "7" : "welcome",
-    "8" : "hope",
-    "9" : "like",
-    "10" : "new",
-    "11" : "people",
-    "12" : "technology",
-    "13" : "use",
-    "14" : "voice",
-    "15" : "create"
+    "3" : "good",
+    "4" : "how",
+    "5" : "university",
+    "6" : "welcome",
+    "7" : "people"
 }
+# labels = {
+#     "0" : "you", 
+#     "1" : "hello", 
+#     "2" : "good",
+#     "3" : "how"
+# }
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -50,6 +66,7 @@ isMultiHand = False
 addFrame = True # For first frame
 
 finalLabel = ''
+finalProb = 0
 
 keyFrames = []
 keyCheckPoints = []
@@ -273,7 +290,7 @@ def checkPreviousFrame(currCheckPoints, prevCheckPoints):
     l_dy = round(abs(l_current_dy - l_prev_dy), 5)
 
     if(r_dx >= d_threshold or r_dy >= d_threshold or l_dx >= d_threshold or l_dy >= d_threshold):
-        print("Thresold crossed.")
+        # print("Thresold crossed.")
 
         return True, r_current_dx, r_current_dy, l_current_dx, l_current_dy, r_prev_dx, r_prev_dy, l_prev_dx, l_prev_dy
     else:
@@ -397,21 +414,29 @@ def classification(inputData_0, inputData_1, inputData_2, inputData_3):
     out_label_1 = labels["{}".format(np.argmax(prob_list_1, axis=0))]
     out_label_2 = labels["{}".format(np.argmax(prob_list_2, axis=0))]
     out_label_3 = labels["{}".format(np.argmax(prob_list_3, axis=0))]
+
+    # print(out_label_0, max_prob_0, out_label_1, max_prob_1, out_label_2, max_prob_2, out_label_3, max_prob_3)
+    print(out_label_0, out_label_1, out_label_2, out_label_3)
     
     label = ''
+    prob = 0
     if(max_prob_0 > 0.95):
         label = out_label_0
+        prob = max_prob_0
 
     if(max_prob_1 > 0.90):
         label = out_label_1
+        prob = max_prob_1
     
     if(max_prob_2 > 0.85):
         label = out_label_2
+        prob = max_prob_2
     
     if(max_prob_3 > 0.80):
         label = out_label_3
+        prob = max_prob_3
 
-    return label
+    return label, prob
 
 def cleanUp(frames):
     keyFrames2 = []
@@ -819,11 +844,13 @@ while cap.isOpened():
                     if(addFrame == True):
                         keyFrames.extend(finalVectors)
                         keyCheckPoints.extend(checkPoints)
-                        print("Frame Added. Length of Keyframes: ", len(keyFrames))
+                        # print("Frame Added. Length of Keyframes: ", len(keyFrames))
                         set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
-                        temp_label = classification(set_0, set_1, set_2, set_3)
-                        if temp_label:
-                            finalLabel = temp_label
+                        finalLabel, finalProb = classification(set_0, set_1, set_2, set_3)
+                        # if temp_label:
+                        #     finalLabel = temp_label
+                        # if temp_prob != 0:
+                        #     finalProb = temp_prob
                         addFrame = False
                     else:
                         addFrame, r_c_x, r_c_y, l_c_x, l_c_y, r_p_x, r_p_y, l_p_x, l_p_y = checkPreviousFrame(checkPoints, keyCheckPoints)
@@ -831,7 +858,7 @@ while cap.isOpened():
                             keyCheckPoints = []
                             if(len(keyFrames) == 96):
                                 keyFrames = recalculateFrames(keyFrames)
-                                print("Frame Cycled. Length of Keyframes: ", len(keyFrames))
+                                # print("Frame Cycled. Length of Keyframes: ", len(keyFrames))
                                 
                     cv2.circle(image, (int(r_c_x * width), int(r_c_y * height)), 3, (255, 0, 0), 2)
                     cv2.circle(image, (int(l_c_x * width), int(l_c_y * height)), 3, (255, 255, 0), 2)
@@ -846,11 +873,13 @@ while cap.isOpened():
                 if(addFrame == True):
                     keyFrames.extend(finalVectors)
                     keyCheckPoints.extend(checkPoints)
-                    print("Frame Added. Length of Keyframes: ", len(keyFrames))
+                    # print("Frame Added. Length of Keyframes: ", len(keyFrames))
                     set_0, set_1, set_2, set_3 = preprocessData(keyFrames)
-                    temp_label = classification(set_0, set_1, set_2, set_3)
-                    if temp_label:
-                        finalLabel = temp_label
+                    finalLabel, finalProb = classification(set_0, set_1, set_2, set_3)
+                    # if temp_label:
+                    #     finalLabel = temp_label
+                    # if temp_prob != 0:
+                    #     finalProb = temp_prob
                     addFrame = False
                 else:
                     addFrame, r_c_x, r_c_y, l_c_x, l_c_y, r_p_x, r_p_y, l_p_x, l_p_y = checkPreviousFrame(checkPoints, keyCheckPoints)
@@ -858,7 +887,7 @@ while cap.isOpened():
                         keyCheckPoints = []
                         if(len(keyFrames) == 96):
                             keyFrames = recalculateFrames(keyFrames)
-                            print("Frame Cycled. Length of Keyframes: ", len(keyFrames))
+                            # print("Frame Cycled. Length of Keyframes: ", len(keyFrames))
                 
                 cv2.circle(image, (int(r_c_x * width), int(r_c_y * height)), 3, (255, 0, 0), 2)
                 cv2.circle(image, (int(l_c_x * width), int(l_c_y * height)), 3, (255, 255, 0), 2)
@@ -873,6 +902,7 @@ while cap.isOpened():
         keyFrames = []
 
     cv2.putText(image, finalLabel, (width - 200, height - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2, 1)
+    cv2.putText(image, str(finalProb), (10, height - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2, 1)
     
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
