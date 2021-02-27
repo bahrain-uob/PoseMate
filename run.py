@@ -50,20 +50,13 @@ labels = {
     "6" : "welcome",
     "7" : "people"
 }
-# labels = {
-#     "0" : "you", 
-#     "1" : "hello", 
-#     "2" : "good",
-#     "3" : "how"
-# }
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-fourcc =cv2.VideoWriter_fourcc('M','J','P','G')
-videoWriter = cv2.VideoWriter('hello.mp4', fourcc, 30, (width,height))
+# videoWriter = cv2.VideoWriter('hello.mp4', fourcc, 30, (width,height))
 
 rightHandFirst = False
 isMultiHand = False
@@ -420,25 +413,20 @@ def classification(inputData_0, inputData_1, inputData_2, inputData_3):
     out_label_3 = labels["{}".format(np.argmax(prob_list_3, axis=0))]
 
     # print(out_label_0, max_prob_0, out_label_1, max_prob_1, out_label_2, max_prob_2, out_label_3, max_prob_3)
-    print(out_label_0, out_label_1, out_label_2, out_label_3)
-    
-    label = ''
-    prob = 0
-    if(max_prob_0 > 0.95):
-        label = out_label_0
-        prob = max_prob_0
+    # print(out_label_0, out_label_1, out_label_2, out_label_3)
 
-    if(max_prob_1 > 0.90):
-        label = out_label_1
+    label = out_label_0
+    prob = max_prob_0
+
+    if(prob < max_prob_1 and max_prob_1 > max_prob_2 and max_prob_1 > max_prob_3):
         prob = max_prob_1
-    
-    if(max_prob_2 > 0.85):
-        label = out_label_2
+        label = out_label_1
+    elif(prob < max_prob_2 and max_prob_2 > max_prob_3 and max_prob_2 > max_prob_1):
         prob = max_prob_2
-    
-    if(max_prob_3 > 0.80):
-        label = out_label_3
+        label = out_label_2
+    elif(prob < max_prob_3 and max_prob_3 > max_prob_1 and max_prob_3 > max_prob_2):
         prob = max_prob_3
+        label = out_label_3
 
     return label, prob
 
@@ -912,7 +900,7 @@ while cap.isOpened():
     if cv2.waitKey(5) & 0xFF == 27:
         break
     
-    videoWriter.write(image)
+    # videoWriter.write(image)
     # Decrease FPS
     # time.sleep(1/frameRate)
     # # Calculate FPS
@@ -923,5 +911,5 @@ while cap.isOpened():
     #     start_time = time.time()
 
 hands.close()
-videoWriter.release()
+# videoWriter.release()
 cap.release()
