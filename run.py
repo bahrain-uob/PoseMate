@@ -20,43 +20,43 @@ frameRate = 1
 
 hands = mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.75)
 
-model = pkl.load(open('./models/xgboost-model-dynamic-words-8-tuned', 'rb'))
+model = pkl.load(open('./models/xgboost-model-dynamic-words-16-tuned', 'rb'))
 
-# labels = {
-#     "0" : "me", 
-#     "1" : "you", 
-#     "2" : "hello", 
-#     "3" : "from",
-#     "4" : "good",
-#     "5" : "how",
-#     "6" : "university",
-#     "7" : "welcome",
-#     "8" : "hope",
-#     "9" : "like",
-#     "10" : "new",
-#     "11" : "people",
-#     "12" : "technology",
-#     "13" : "use",
-#     "14" : "voice",
-#     "15" : "create"
-# }
 labels = {
     "0" : "me", 
     "1" : "you", 
     "2" : "hello", 
-    "3" : "good",
-    "4" : "how",
-    "5" : "university",
-    "6" : "welcome",
-    "7" : "people"
+    "3" : "from",
+    "4" : "good",
+    "5" : "how",
+    "6" : "university",
+    "7" : "welcome",
+    "8" : "hope",
+    "9" : "like",
+    "10" : "new",
+    "11" : "people",
+    "12" : "technology",
+    "13" : "use",
+    "14" : "voice",
+    "15" : "create"
 }
+# labels = {
+#     "0" : "me", 
+#     "1" : "you", 
+#     "2" : "hello", 
+#     "3" : "good",
+#     "4" : "how",
+#     "5" : "university",
+#     "6" : "welcome",
+#     "7" : "people"
+# }
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-# videoWriter = cv2.VideoWriter('hello.mp4', fourcc, 30, (width,height))
+# videoWriter = cv2.VideoWriter('you.mp4', fourcc, 30, (width,height))
 
 rightHandFirst = False
 isMultiHand = False
