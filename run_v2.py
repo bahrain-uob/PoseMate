@@ -5,6 +5,7 @@ import xgboost as xgb
 import math
 import numpy as np
 import mediapipe as mp
+from speak import speakText
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
@@ -16,6 +17,9 @@ hands = mp_hands.Hands(min_detection_confidence=0.6, min_tracking_confidence=0.7
 
 modelRight = pkl.load(open('./models/xgboost-model-dynamic-words-16-right-tuned', 'rb'))
 modelLeft = pkl.load(open('./models/xgboost-model-dynamic-words-16-left-tuned', 'rb'))
+
+start_time = time.time()
+speakWaitTime = 1
 
 labels = {
     "0" : "me", 
@@ -459,6 +463,7 @@ while cap.isOpened():
 
                     if(len(leftKeyFrames) != 0):                                
                         leftKeyFrames, leftLabel, leftProb = cleanUp(leftKeyFrames, None)
+                        leftLabel = ''
 
                 if(len(leftHandPoints) != 0):
                     leftVectors = generatePointVectors(leftHandPoints, leftKeyFrames)
@@ -492,6 +497,7 @@ while cap.isOpened():
                     
                     if(len(rightKeyFrames) != 0):                                
                         rightKeyFrames, rightLabel, rightProb = cleanUp(rightKeyFrames, None)
+                        rightLabel = ''
                             
                 cv2.circle(image, (int(r_c_x * width), int(r_c_y * height)), 3, (255, 0, 0), 2)
                 cv2.circle(image, (int(l_c_x * width), int(l_c_y * height)), 3, (255, 255, 0), 2)
@@ -504,11 +510,20 @@ while cap.isOpened():
     else:
         if(len(rightKeyFrames) != 0):
             rightKeyFrames, rightLabel, rightProb = cleanUp(rightKeyFrames, modelRight)
+            rightLabel = ''
         if(len(leftKeyFrames) != 0):
             leftKeyFrames, leftLabel, leftProb = cleanUp(leftKeyFrames, modelLeft)
+            leftLabel = ''
 
     cv2.putText(image, rightLabel, (width - 200, height - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2, 1)
     cv2.putText(image, str(rightProb), (10, height - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2, 1)
+
+    # Calculate FPS
+    if (time.time() - start_time) > speakWaitTime :
+        # Speak
+        if rightLabel:
+            speakText(rightLabel)
+        start_time = time.time()
 
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
