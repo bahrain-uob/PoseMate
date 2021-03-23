@@ -92,9 +92,9 @@ Split the data into a train/test split at a 80/20 ratio.
 
 The algorithm provides default hyperparameters however, some parameters need to be set according to the dataset.
 
-*num_class* = Set this to the total labels in your dataset
-*objective* = Set this to **multi:softprob**
-*eval_metric* = Set this to **merror**
+*num_class* = Set this to the total labels in your dataset</br>
+*objective* = Set this to **multi:softprob**</br>
+*eval_metric* = Set this to **merror**</br>
 
 To get the best results, use the Hyperparameter tuning jobs to set the remaining parameters.
 
